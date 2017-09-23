@@ -11,6 +11,12 @@ use LazyCollection\Examples\Numbers;
  */
 class LazyCollectionTest extends TestCase {
 
+    protected $functionLog = [];
+
+    public function setUp() {
+        $this->functionLog = [];
+    }
+
     public function testAll() {
         $lazyArray = new LazyArray(['foo', 'bar', 'baz']);
         $all = $lazyArray->all();
@@ -97,10 +103,62 @@ class LazyCollectionTest extends TestCase {
                 returns the right amount of items, the count is applied _after_ filtering'
         );
 
+        $numbers = new LazyArray([1, 2, 3, 4, 5]);
         $this->assertEmpty(
             iterator_to_array($numbers->filter('is_string')->take(20)),
             'The result will be empty when nothing matches the predicate'
         );
+    }
+
+    public function testCombinedMapAndFilter() {
+        $collection = new LazyArray(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        );
+        $firstSquareOver80 = $collection->map(function($x) {
+            return $x * $x;
+        })->filter(function($x) {
+            return $x > 80;
+        })->first();
+
+        $this->assertSame(
+            81,
+            $firstSquareOver80,
+            'map() and filter() can be combined wonderfully'
+        );
+
+        /**
+         * Let's prove it's lazy by logging our actions:
+         */
+        $collection->map(function($x) {
+            $this->functionLog[] = "mapping $x";
+            return $x * $x;
+        })->filter(function($x) {
+            $this->functionLog[] = "filtering $x";
+            return $x > 40;
+        })->first();
+
+        $this->assertSame(
+            [
+                'mapping 1',
+                'filtering 1',
+                'mapping 2',
+                'filtering 4',
+                'mapping 3',
+                'filtering 9',
+                'mapping 4',
+                'filtering 16',
+                'mapping 5',
+                'filtering 25',
+                'mapping 6',
+                'filtering 36',
+                'mapping 7',
+                'filtering 49',
+            ],
+            $this->functionLog,
+            'It maps only the data that\'s necessary. You never have to compute all mappings unless
+                you would ask for all()'
+        );
+
     }
 
 }
