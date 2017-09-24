@@ -53,13 +53,14 @@ class LazyCollectionTest extends TestCase {
     public function testTake() {
         $numbers = Numbers::from(24);
         $first50 = $numbers->take(50);
-        $this->assertInstanceOf('\Generator', $first50, 'take() returns a Generator');
+        $this->assertInstanceOf('LazyCollection\Subset', $first50, 'take() returns a Subset');
 
         $acc = [];
-        foreach ($first50 as $n) {
+        foreach ($first50() as $n) {
             $acc[] = $n;
         }
 
+        $this->assertCount(50, $acc);
         $this->assertSame(
             range(24, 24 + 49),
             $acc,
@@ -80,7 +81,7 @@ class LazyCollectionTest extends TestCase {
 
         $this->assertSame(
             [1, 4, 9, 16, 25, 36, 49, 64, 81, 100],
-            iterator_to_array($squared->take(10)),
+            iterator_to_array($squared->take(10)->all()),
             'Iterating the mapped collection gives you mapped results'
         );
     }
@@ -98,14 +99,14 @@ class LazyCollectionTest extends TestCase {
 
         $this->assertSame(
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-            iterator_to_array($evens->take(10)),
+            iterator_to_array($evens->take(10)->all()),
             'Iterating the filtered collection gives you mapped results. Note that take() still
                 returns the right amount of items, the count is applied _after_ filtering'
         );
 
         $numbers = new LazyArray([1, 2, 3, 4, 5]);
         $this->assertEmpty(
-            iterator_to_array($numbers->filter('is_string')->take(20)),
+            iterator_to_array($numbers->filter('is_string')->take(20)->all()),
             'The result will be empty when nothing matches the predicate'
         );
     }
@@ -159,6 +160,31 @@ class LazyCollectionTest extends TestCase {
                 you would ask for all()'
         );
 
+    }
+
+    public function testReduce() {
+        $numbers = new LazyArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        $plus = function($a, $b) {
+            return $a + $b;
+        };
+
+        $this->assertSame(
+            55,
+            $numbers->reduce($plus, 0)
+        );
+
+        $veggies = new LazyArray(['carrot', 'cabbage', 'zucchini', 'turnip', 'banana', 'apple']);
+        $longest = function($a, $b) {
+            return $a > $b ? $a : $b;
+        };
+
+        // Oops, some fruit slipped in at the end.
+        $veggies = $veggies->take(4);
+
+        $this->assertSame(
+            'zucchini',
+            $veggies->reduce($longest, '')
+        );
     }
 
 }

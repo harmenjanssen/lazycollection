@@ -1,16 +1,8 @@
 <?php
 namespace LazyCollection;
 
-use LazyCollection\LazyCollection;
 
-/**
- * Represents a filtered iterator. Filtered is in itself also a LazyCollection,
- * allowing you to chain further and created mapped, filtered collections.
- *
- * @package  LazyCollection
- * @author   Harmen Janssen <harmen@whatstyle.net>
- */
-class Filtered extends LazyCollection {
+class Subset extends LazyCollection {
 
     /**
      * @var LazyCollection
@@ -18,25 +10,44 @@ class Filtered extends LazyCollection {
     protected $collection;
 
     /**
-     * @var callable
+     * @var int
      */
-    protected $predicate;
+    protected $start;
 
     /**
-     * @param LazyCollection $collection  All iteration methods are proxied to this.
-     * @param callable       $predicate   The filter function
+     * @var int
+     */
+    protected $length;
+
+    /**
+     * @param LazyCollection $collection
+     * @param int            $start
+     * @param int            $length
      * @return void
      */
-    public function __construct(LazyCollection $collection, callable $predicate) {
+    public function __construct(LazyCollection $collection, int $start, int $length) {
         $this->collection = $collection;
-        $this->predicate = $predicate;
+        $this->start = $start;
+        $this->length = $length;
+        if ($start < 0) {
+            throw new \InvalidArgumentException("'start' must be greater than zero");
+        }
+        if ($length <= 0) {
+            throw new \InvalidArgumentException("'length' must be greater than zero");
+        }
     }
 
     public function all(): \Generator {
+        $iterations = -1;
         foreach ($this->collection->all() as $n) {
-            if (call_user_func($this->predicate, $n)) {
-                yield $n;
+            $iterations++;
+            if ($iterations < $this->start) {
+                continue;
             }
+            if ($iterations >= ($this->start + $this->length)) {
+                break;
+            }
+            yield $n;
         }
     }
 
@@ -80,4 +91,3 @@ class Filtered extends LazyCollection {
     }
 
 }
-

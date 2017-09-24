@@ -70,15 +70,8 @@ abstract class LazyCollection {
      * @param int $amount
      * @return \Generator
      */
-    public function take(int $amount): \Generator {
-        $iterations = 0;
-        foreach ($this->all() as $n) {
-            if ($iterations >= $amount) {
-                break;
-            }
-            yield $n;
-            $iterations++;
-        }
+    public function take(int $amount): Subset {
+        return new Subset($this, 0, $amount);
     }
 
     /**
@@ -97,8 +90,26 @@ abstract class LazyCollection {
      * @param callable $filter
      * @return Filtered
      */
-    public function filter($predicate): Filtered {
+    public function filter(callable $predicate): Filtered {
         return new Filtered($this, $predicate);
     }
 
+    /**
+     * Reduce a collection.
+     *
+     * @param callable $reducer
+     * @param mixed    $seed
+     * @return mixed
+     */
+    public function reduce(callable $reducer, $seed) {
+        $acc = $seed;
+        foreach ($this->all() as $item) {
+            $acc = call_user_func($reducer, $acc, $item);
+        }
+        return $acc;
+    }
+
+    public function __invoke(): \Generator {
+        return $this->all();
+    }
 }
