@@ -1,8 +1,6 @@
 <?php
 namespace LazyCollection;
 
-use LazyCollection\LazyCollection;
-
 /**
  * Represents a filtered iterator. Filtered is in itself also a LazyCollection,
  * allowing you to chain further and created mapped, filtered collections.

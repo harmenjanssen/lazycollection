@@ -68,10 +68,21 @@ abstract class LazyCollection {
      * Take a fixed amount of values.
      *
      * @param int $amount
-     * @return \Generator
+     * @return Subset
      */
     public function take(int $amount): Subset {
         return new Subset($this, 0, $amount);
+    }
+
+    /**
+     * Return a subset of elements from this collection.
+     *
+     * @param int $start
+     * @param int $length
+     * @return Subset
+     */
+    public function slice(int $start, int $length): Subset {
+        return new Subset($this, $start, $length);
     }
 
     /**

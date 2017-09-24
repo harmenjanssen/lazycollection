@@ -68,6 +68,15 @@ class LazyCollectionTest extends TestCase {
         );
     }
 
+    public function testSlice() {
+        $veggies = new LazyArray(['carrot', 'cabbage', 'zucchini', 'turnip']);
+        $slice = $veggies->slice(1, 2);
+        $this->assertSame(
+            ['cabbage', 'zucchini'],
+            iterator_to_array($slice->all())
+        );
+    }
+
     public function testMap() {
         $numbers = Numbers::from(1);
         $squared = $numbers->map(function($x) {

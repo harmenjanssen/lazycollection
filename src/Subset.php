@@ -1,6 +1,13 @@
 <?php
 namespace LazyCollection;
 
+/**
+ * Represents a mapped iterator. Mapped is in itself also a LazyCollection, allowing you to chain
+ * further and created mapped, filtered collections.
+ *
+ * @package  LazyCollection
+ * @author   Harmen Janssen <harmen@whatstyle.net>
+ */
 
 class Subset extends LazyCollection {
 
